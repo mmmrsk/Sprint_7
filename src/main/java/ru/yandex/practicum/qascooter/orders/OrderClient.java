@@ -1,13 +1,15 @@
-package ru.yandex.practicum.qascooter.couriers;
+package ru.yandex.practicum.qascooter.orders;
 
 import io.restassured.response.ValidatableResponse;
+import ru.yandex.practicum.qascooter.couriers.BaseClient;
+
 import static io.restassured.RestAssured.given;
 public class OrderClient extends BaseClient {
     private static final String ORDER_CREATE = "/api/v1/orders";
     private static final String ORDER_LIST = "/api/v1/orders";
     private static final String ORDER_CANCEL = "/api/v1/orders/cancel";
 
-    public ValidatableResponse createOrder (Order order) {
+    public ValidatableResponse createOrder(Order order) {
         return given()
                 .spec(getSpec())
                 .body(order)
@@ -16,7 +18,7 @@ public class OrderClient extends BaseClient {
                 .then();
     }
 
-    public ValidatableResponse list() {
+    public ValidatableResponse listOfOrders() {
         return given()
                 .spec(getSpec())
                 .when()
@@ -24,7 +26,7 @@ public class OrderClient extends BaseClient {
                 .then();
     }
 
-    public ValidatableResponse cancel(int orderId) {
+    public ValidatableResponse cancelOrder(int orderId) {
         return given()
                 .spec(getSpec())
                 .when()

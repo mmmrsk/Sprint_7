@@ -1,4 +1,4 @@
-package ru.yandex.practicum.qascooter.clients;
+package ru.yandex.practicum.qascooter.couriers;
 
 import io.restassured.builder.RequestSpecBuilder;
 import io.restassured.http.ContentType;

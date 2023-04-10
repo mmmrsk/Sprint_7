@@ -1,4 +1,4 @@
-package ru.yandex.practicum.qascooter.clients;
+package ru.yandex.practicum.qascooter.couriers;
 
 import io.restassured.response.ValidatableResponse ;
 import static io.restassured.RestAssured.given;
@@ -7,7 +7,7 @@ public class CourierClient extends BaseClient {
     private static final String COURIER_LOGIN = "/api/v1/courier/login";
     private static final String COURIER_DELETE = COURIER_CREATE + "/{courierId}";
 
-    public ValidatableResponse createCourier (Courier courier) {
+    public ValidatableResponse createCourier(Courier courier) {
         return given()
                 .spec(getSpec())
                 .body(courier)
@@ -16,16 +16,16 @@ public class CourierClient extends BaseClient {
                 .then();
     }
 
-    public ValidatableResponse loginByCourier (CourierCredentials courierCreds) {
+    public ValidatableResponse loginByCourier(CourierLogin courierLogin) {
         return given()
                 .spec(getSpec())
-                .body(courierCreds)
+                .body(courierLogin)
                 .when()
                 .post(COURIER_LOGIN)
                 .then();
     }
 
-    public ValidatableResponse deleteCourier (int courierId) {
+    public ValidatableResponse deleteCourier(int courierId) {
         return given()
                 .spec(getSpec())
                 .when()
