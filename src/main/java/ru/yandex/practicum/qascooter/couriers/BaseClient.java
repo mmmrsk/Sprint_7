@@ -5,11 +5,12 @@ import io.restassured.http.ContentType;
 import io.restassured.specification.RequestSpecification;
 
 public class BaseClient {
-    public static final String BASE_URL = "https://qa-scooter.praktikum-services.ru";
-    public static RequestSpecification getSpec() {
+    private static final String BASE_URL = "http://qa-scooter.praktikum-services.ru";
+
+    protected RequestSpecification getSpec() {
         return new RequestSpecBuilder()
-                .setBaseUri(BASE_URL)
                 .setContentType(ContentType.JSON)
+                .setBaseUri(BASE_URL)
                 .build();
     }
 }

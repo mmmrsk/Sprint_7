@@ -1,64 +1,160 @@
 package ru.yandex.practicum.qascooter;
 
 import io.restassured.response.ValidatableResponse;
-import ru.yandex.practicum.qascooter.couriers.CourierClient;
-import ru.yandex.practicum.qascooter.couriers.Courier;
-import ru.yandex.practicum.qascooter.couriers.CourierLogin;
-import io.qameta.allure.Description;
-import io.qameta.allure.junit4.DisplayName;
-import io.restassured.RestAssured;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
-import org.junit.runner.RunWith;
-import org.junit.runners.Parameterized;
-
 import static org.apache.http.HttpStatus.*;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import io.qameta.allure.Description;
+import io.qameta.allure.junit4.DisplayName;
+import ru.yandex.practicum.qascooter.couriers.Courier;
+import ru.yandex.practicum.qascooter.couriers.CourierClient;
+import ru.yandex.practicum.qascooter.couriers.CourierCreds;
+import ru.yandex.practicum.qascooter.couriers.CourierGen;
 
-@RunWith(Parameterized.class)
 public class CourierLoginTest {
-    private CourierClient courierClient;
-    private CourierLogin courierLogin;
+
     private Courier courier;
-    private int expectedCode;
-    public CourierLoginTest(String login, String password, int code) {
-        this.courierLogin = new CourierLogin(login, password);
-        this.expectedCode = code;
-    }
+    private CourierClient courierClient;
+    private int id;
 
     @Before
     public void setUp() {
-        RestAssured.baseURI = "https://qa-scooter.praktikum-services.ru";
         courierClient = new CourierClient();
-        courier = new Courier("courier_1", "Test1234", "John");
-        courierClient.createCourier(courier);
-    }
-
-    @Parameterized.Parameters
-    public static Object[] getLoginInfo() {
-        return new Object[][]{
-                {"", "", SC_BAD_REQUEST},
-                {"", "Test1234", SC_BAD_REQUEST},
-                {"courier_1", "", SC_BAD_REQUEST},
-                {"courier_1", "Test", SC_NOT_FOUND}, // неверный пароль
-                {"courier", "Test1234", SC_NOT_FOUND}, // неверный логин
-                {"courier_1", "Test1234", SC_OK} //верный набор данных
-        };
     }
 
     @After
-    public void tearDown() {
-        courierLogin = new CourierLogin(courier.getLogin(), courier.getPassword());
-        courierClient.deleteCourier(courierClient.loginByCourier(courierLogin).extract().path("id"));
+    public void cleanUp() {
+        if(id != 0) {
+            courierClient.deleteCourier(id);
+        }
     }
 
-    @DisplayName("Login.")
-    @Description("Failed authorization attempts with incorrect data")
     @Test
-    public void TryToLogin()  {
-        ValidatableResponse response = courierClient.loginByCourier(courierLogin);
-        assertEquals(expectedCode, response.extract().statusCode());
+    @DisplayName("Check status code and order id return of POST /api/v1/courier/login")
+    @Description("Positive test for POST /api/v1/courier/login with valid courier with all required fields filled in")
+    public void courierCanLogin(){
+        courier = CourierGen.getValidAllFields();
+        courierClient.createCourier(courier);
+        ValidatableResponse loginResponse = courierClient.loginByCourier(CourierCreds.from(courier));
+
+        int statusCode = loginResponse.extract().statusCode();
+        assertEquals(SC_OK, statusCode);
+
+        id = loginResponse.extract().path("id");
+        assertTrue(id != 0);
     }
 
+    @Test
+    @DisplayName("Check status code and message of POST /api/v1/courier/login")
+    @Description("Negative test for POST /api/v1/courier/login with invalid courier with invalid login")
+    public void courierCanNotLoginWithFakeLogin() {
+        courier = CourierGen.getValidAllFields();
+        courierClient.createCourier(courier);
+        ValidatableResponse loginResponse = courierClient.loginByCourier(CourierCreds.returnCredentialsWithInvalidLogin(courier));
+
+        int statusCode = loginResponse.extract().statusCode();
+        assertEquals(SC_NOT_FOUND, statusCode);
+
+        String expectedMessage = "Учетная запись не найдена";
+        String actualMessage = loginResponse.extract().path("message");
+        assertEquals(expectedMessage, actualMessage);
+    }
+
+    @Test
+    @DisplayName("Check status code and message of POST /api/v1/courier/login")
+    @Description("Negative test for POST /api/v1/courier/login with invalid courier with invalid password")
+    public void courierCanNotLoginWithFakePassword() {
+        courier = CourierGen.getValidAllFields();
+        courierClient.createCourier(courier);
+        ValidatableResponse loginResponse = courierClient.loginByCourier(CourierCreds.returnCredentialsWithInvalidPassword(courier));
+
+        int statusCode = loginResponse.extract().statusCode();
+        assertEquals(SC_NOT_FOUND, statusCode);
+
+        String expectedMessage = "Учетная запись не найдена";
+        String actualMessage = loginResponse.extract().path("message");
+        assertEquals(expectedMessage, actualMessage);
+    }
+
+    @Test
+    @DisplayName("Check status code and message of POST /api/v1/courier/login")
+    @Description("Negative test for POST /api/v1/courier/login with invalid courier with null login")
+    public void courierCanNotLoginWithLoginNull(){
+        courier = CourierGen.getInvalidWithLoginNull();
+        courierClient.createCourier(courier);
+        ValidatableResponse loginResponse = courierClient.loginByCourier(CourierCreds.from(courier));
+
+        int statusCode = loginResponse.extract().statusCode();
+        assertEquals(SC_BAD_REQUEST, statusCode);
+
+        String expectedMessage = "Недостаточно данных для входа";
+        String actualMessage = loginResponse.extract().path("message");
+        assertEquals(expectedMessage, actualMessage);
+    }
+
+    @Test
+    @DisplayName("Check status code and message of POST /api/v1/courier/login") // имя теста
+    @Description("Negative test for POST /api/v1/courier/login with invalid courier with empty login")
+    public void courierCanNotLoginWithLoginEmpty(){
+        courier = CourierGen.getInvalidWithLoginEmpty();
+        courierClient.createCourier(courier);
+        ValidatableResponse loginResponse = courierClient.loginByCourier(CourierCreds.from(courier));
+
+        int statusCode = loginResponse.extract().statusCode();
+        assertEquals(SC_BAD_REQUEST, statusCode);
+
+        String expectedMessage = "Недостаточно данных для входа";
+        String actualMessage = loginResponse.extract().path("message");
+        assertEquals(expectedMessage, actualMessage);
+    }
+
+    @Test
+    @DisplayName("Check status code and message of POST /api/v1/courier/login")
+    @Description("Negative test for POST /api/v1/courier/login with invalid courier with null password")
+    public void courierCanNotLoginWithPasswordNull(){
+        courier = CourierGen.getInvalidWithPasswordNull();
+        courierClient.createCourier(courier);
+        ValidatableResponse loginResponse = courierClient.loginByCourier(CourierCreds.from(courier));
+
+        int statusCode = loginResponse.extract().statusCode();
+        assertEquals(SC_BAD_REQUEST, statusCode);
+
+        String expectedMessage = "Недостаточно данных для входа";
+        String actualMessage = loginResponse.extract().path("message");
+        assertEquals(expectedMessage, actualMessage);
+    }
+
+    @Test
+    @DisplayName("Check status code and message of POST /api/v1/courier/login")
+    @Description("Negative test for POST /api/v1/courier/login with invalid courier with empty password")
+    public void courierCanNotLoginWithPasswordEmpty(){
+        courier = CourierGen.getInvalidWithPasswordEmpty();
+        courierClient.createCourier(courier);
+        ValidatableResponse loginResponse = courierClient.loginByCourier(CourierCreds.from(courier));
+
+        int statusCode = loginResponse.extract().statusCode();
+        assertEquals(SC_BAD_REQUEST, statusCode);
+
+        String expectedMessage = "Недостаточно данных для входа";
+        String actualMessage = loginResponse.extract().path("message");
+        assertEquals(expectedMessage, actualMessage);
+    }
+
+    @Test
+    @DisplayName("Check status code and message of POST /api/v1/courier/login") // имя теста
+    @Description("Negative test for POST /api/v1/courier/login with non-existing courier")
+    public void notCreatedCourierCanNotLogin() {
+        courier = CourierGen.getValidAllFields();
+        ValidatableResponse loginResponse = courierClient.loginByCourier(CourierCreds.from(courier));
+
+        int statusCode = loginResponse.extract().statusCode();
+        assertEquals(SC_NOT_FOUND, statusCode);
+
+        String expectedMessage = "Учетная запись не найдена";
+        String actualMessage = loginResponse.extract().path("message");
+        assertEquals(expectedMessage, actualMessage);
+    }
 }

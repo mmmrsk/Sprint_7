@@ -17,7 +17,6 @@ import ru.yandex.practicum.qascooter.orders.OrdersData;
 
 @RunWith(Parameterized.class)
 public class CreateOrderTest {
-
     private OrderClient orderClient;
     private int track;
     final Order order;
@@ -41,15 +40,15 @@ public class CreateOrderTest {
     @Parameterized.Parameters
     public static Object[][] data() throws Exception {
         return new Object[][] {
-                {OrdersData.getValid(0)}, // color is not selected
-                {OrdersData.getValid(1)}, // chosen black or grey color
-                {OrdersData.getValid(2)} // both color selected
+                {OrdersData.getValid(0)}, //color is not selected
+                {OrdersData.getValid(1)}, //black or grey color selected
+                {OrdersData.getValid(2)}  //both colors selected
         };
     }
 
     @Test
-    @DisplayName("Creating order") // имя теста
-    @Description("Successful order creation")
+    @DisplayName("Check status code and track number return of POST /api/v1/orders")
+    @Description("Positive test for POST /api/v1/orders with 3 scooter color options")
     public void orderCanBeCreated(){
         ValidatableResponse createResponse = orderClient.createOrder(order);
 
@@ -57,7 +56,6 @@ public class CreateOrderTest {
         assertEquals(SC_CREATED, statusCode);
 
         track = createResponse.extract().path("track");
-        assertTrue("Track number is missing:", track != 0);
+        assertTrue(track != 0);
     }
-
 }

@@ -2,8 +2,8 @@ package ru.yandex.practicum.qascooter.orders;
 
 import io.restassured.response.ValidatableResponse;
 import ru.yandex.practicum.qascooter.couriers.BaseClient;
-
 import static io.restassured.RestAssured.given;
+
 public class OrderClient extends BaseClient {
     private static final String ORDER_CREATE = "/api/v1/orders";
     private static final String ORDER_LIST = "/api/v1/orders";
@@ -26,11 +26,11 @@ public class OrderClient extends BaseClient {
                 .then();
     }
 
-    public ValidatableResponse cancelOrder(int orderId) {
+    public ValidatableResponse cancelOrder(int track) {
         return given()
                 .spec(getSpec())
                 .when()
-                .delete(ORDER_CANCEL + orderId)
+                .delete(ORDER_CANCEL + track)
                 .then();
     }
 }
