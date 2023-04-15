@@ -7,7 +7,7 @@ import io.qameta.allure.Step;
 public class CourierClient extends BaseClient {
     private static final String COURIER_CREATE = "/api/v1/courier";
     private static final String COURIER_LOGIN = "/api/v1/courier/login";
-    private static final String COURIER_DELETE = COURIER_CREATE + "/{courierId}";
+    private static final String COURIER_DELETE = "/api/v1/courier/";
 
     @Step("Creating a courier")
     public ValidatableResponse createCourier(Courier courier) {
@@ -32,7 +32,7 @@ public class CourierClient extends BaseClient {
         return given()
                 .spec(getSpec())
                 .when()
-                .delete(COURIER_DELETE)
+                .delete(COURIER_DELETE + id)
                 .then();
     }
 

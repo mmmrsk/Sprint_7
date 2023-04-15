@@ -23,6 +23,7 @@ public class CreateCourierTest {
     @Before
     public void setUp() {
         courierClient = new CourierClient();
+
     }
 
     @After
@@ -74,7 +75,7 @@ public class CreateCourierTest {
         ValidatableResponse createResponse = courierClient.createCourier(courier);
         ValidatableResponse loginResponse = courierClient.loginByCourier(CourierCreds.from(courier));
 
-        id = loginResponse.extract().path("id");
+       id = loginResponse.extract().path("id");
 
         int statusCode = createResponse.extract().statusCode();
         assertEquals(SC_CREATED, statusCode);
@@ -94,7 +95,7 @@ public class CreateCourierTest {
         int statusCode = createResponse.extract().statusCode();
         assertEquals(SC_CONFLICT, statusCode);
 
-        String expectedMessage = "Этот логин уже используется";
+        String expectedMessage = "Этот логин уже используется. Попробуйте другой.";
         String actualMessage = createResponse.extract().path("message");
         assertEquals(expectedMessage, actualMessage);
     }
